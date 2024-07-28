@@ -6,9 +6,9 @@ from bronze_layer_processing import bronze_layer_processing
 from silver_layer_processing import silver_layer_processing
 from gold_layer_processing import gold_layer_processing
 import time
-
+import os
 from configparser import ConfigParser
-
+os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages org.apache.spark:spark-streaming-kafka-0-10_2.12:3.2.0,org.apache.spark:spark-sql-kafka-0-10_2.12:3.2.0 pyspark-shell'
 # Loading Kafka Cluster/Server details from configuration file(datamaking_app.conf)
 # Build a config object
 conf_file_path = "/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/"
@@ -86,8 +86,11 @@ if __name__ == "__main__":
         .appName("Real-Time Data Processing with Kafka Source and Message Format as JSON") \
         .master("local[*]") \
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+        .config("spark.jars.packages", ",io.delta:delta-core_2.12:2.1.0")\
         # .getOrCreate()
-    spark = configure_spark_with_delta_pip(builder, extra_packages=extra_packages).getOrCreate()
+    
+    spark = configure_spark_with_delta_pip(builder).getOrCreate()
+    # .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
     # io.delta:delta-core_2.12:2.1.0
     """
     spark-submit --master "local[*]" 
@@ -97,7 +100,28 @@ if __name__ == "__main__":
     """
 
     """
-    /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.412.b06-1.fc39.x86_64/jre/bin/java -cp /home/nguyenkieubaokhanh/.local/lib/python3.12/site-packages/pyspark/conf:/home/nguyenkieubaokhanh/.local/lib/python3.12/site-packages/pyspark/jars/* -Xmx1g -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.nio.cs=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED -Djdk.reflect.useDirectMethodHandle=false 
+    /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.412.b06-1.fc39.x86_64/jre/bin/java 
+    -cp 
+        /home/nguyenkieubaokhanh/.local/lib/python3.12/site-packages/pyspark/conf
+        :/home/nguyenkieubaokhanh/.local/lib/python3.12/site-packages/pyspark/jars/* 
+        -Xmx1g 
+        -XX:+IgnoreUnrecognizedVMOptions 
+    --add-opens=java.base/java.lang=ALL-UNNAMED 
+    --add-opens=java.base/java.lang.invoke=ALL-UNNAMED 
+    --add-opens=java.base/java.lang.reflect=ALL-UNNAMED 
+    --add-opens=java.base/java.io=ALL-UNNAMED 
+    --add-opens=java.base/java.net=ALL-UNNAMED 
+    --add-opens=java.base/java.nio=ALL-UNNAMED 
+    --add-opens=java.base/java.util=ALL-UNNAMED 
+    --add-opens=java.base/java.util.concurrent=ALL-UNNAMED 
+    --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED 
+    --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED 
+    --add-opens=java.base/sun.nio.ch=ALL-UNNAMED 
+    --add-opens=java.base/sun.nio.cs=ALL-UNNAMED 
+    --add-opens=java.base/sun.security.action=ALL-UNNAMED 
+    --add-opens=java.base/sun.util.calendar=ALL-UNNAMED 
+    --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED 
+    -Djdk.reflect.useDirectMethodHandle=false 
     org.apache.spark.deploy.SparkSubmit 
     --master 
         local[*] 
