@@ -1,8 +1,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from delta import *
 from bronze_layer_processing import bronze_layer_processing
-
+from silver_layer_processing import silver_layer_processing
+from gold_layer_processing import gold_layer_processing
 import time
 
 from configparser import ConfigParser
@@ -78,12 +80,15 @@ def save_to_mysql_table(current_df, epoc_id, mysql_table_name):
 if __name__ == "__main__":
     print("Real-Time Data Processing Application Started...")
     print(time.strftime("%Y-%m-%d %H:%M:%S"))
-
-    spark = SparkSession \
+    extra_packages=["io.delta:delta-core_2.12:2.1.0"]
+    builder = SparkSession \
         .builder \
         .appName("Real-Time Data Processing with Kafka Source and Message Format as JSON") \
         .master("local[*]") \
-        .getOrCreate()
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+        # .getOrCreate()
+    spark = configure_spark_with_delta_pip(builder, extra_packages=extra_packages).getOrCreate()
+    # io.delta:delta-core_2.12:2.1.0
     """
     spark-submit --master "local[*]" 
     --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0,mysql:mysql-connector-java:5.1.49 
@@ -91,62 +96,36 @@ if __name__ == "__main__":
             /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/realtime_data_processing.py
     """
 
+    """
+    /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.412.b06-1.fc39.x86_64/jre/bin/java -cp /home/nguyenkieubaokhanh/.local/lib/python3.12/site-packages/pyspark/conf:/home/nguyenkieubaokhanh/.local/lib/python3.12/site-packages/pyspark/jars/* -Xmx1g -XX:+IgnoreUnrecognizedVMOptions --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.nio=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.base/jdk.internal.ref=ALL-UNNAMED --add-opens=java.base/sun.nio.ch=ALL-UNNAMED --add-opens=java.base/sun.nio.cs=ALL-UNNAMED --add-opens=java.base/sun.security.action=ALL-UNNAMED --add-opens=java.base/sun.util.calendar=ALL-UNNAMED --add-opens=java.security.jgss/sun.security.krb5=ALL-UNNAMED -Djdk.reflect.useDirectMethodHandle=false 
+    org.apache.spark.deploy.SparkSubmit 
+    --master 
+        local[*] 
+    --packages 
+        org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0,
+        mysql:mysql-connector-java:5.1.49 
+    --files 
+        /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/datamaking_app.conf 
+        /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/realtime_data_processing.py
+    """
+
     spark.sparkContext.setLogLevel("ERROR")
 
     # Construct a streaming DataFrame that reads from test-topic
     # What is a bootstrap server: https://stackoverflow.com/questions/61656223/what-is-bootstrap-server-in-kafka-config
-    # orders_df = spark \
-    #     .readStream \
-    #     .format("kafka") \
-    #     .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
-    #     .option("subscribe", input_kafka_topic_name) \
-    #     .option("startingOffsets", "latest") \
-    #     .load()
 
-    # print("Printing Schema of orders_df: ")
-    # orders_df.printSchema()
-    orders_df = bronze_layer_processing(spark, kafka_bootstrap_servers, input_kafka_topic_name)
+    bronze_df = bronze_layer_processing(spark, kafka_bootstrap_servers, input_kafka_topic_name)
     # key, value, topic, partition, offset, timestamp
 
-    orders_df1 = orders_df.selectExpr("CAST(value AS STRING)", "timestamp")
 
     # Define a schema for the orders data --> usage of schema registry?
     # order_id,order_product_name,order_card_type,order_amount,order_datetime,order_country_name,order_city_name,order_ecommerce_website_name
-    orders_schema = StructType() \
-        .add("order_id", StringType()) \
-        .add("order_product_name", StringType()) \
-        .add("order_card_type", StringType()) \
-        .add("order_amount", StringType()) \
-        .add("order_datetime", StringType()) \
-        .add("order_country_name", StringType()) \
-        .add("order_city_name", StringType()) \
-        .add("order_ecommerce_website_name", StringType())
-
     # {'order_id': 1, 'order_product_name': 'Laptop', 'order_card_type': 'MasterCard',
     # 'order_amount': 38.48, 'order_datetime': '2020-10-21 10:59:10', 'order_country_name': 'Italy',
     # 'order_city_name': 'Rome', 'order_ecommerce_website_name': 'www.flipkart.com'}
-    orders_df2 = orders_df1\
-        .select(from_json(col("value"), orders_schema)
-                .alias("orders"), "timestamp")
+    silver_df = silver_layer_processing(bronze_df)
 
-    orders_df2.printSchema()
-
-    # orders -> ['order_id': 1, 'order_product_name': 'Laptop', ....]
-
-    orders_df3 = orders_df2.select("orders.*", "timestamp")
-
-    print("Printing schema of orders_df3 before creating date & hour column from order_datetime ")
-    orders_df3.printSchema()
-
-    orders_df3 = orders_df3.withColumn(
-        "partition_date", to_date("order_datetime"))
-    orders_df3 = orders_df3.withColumn("partition_hour", hour(
-        to_timestamp("order_datetime", 'yyyy-MM-dd HH:mm:ss')))
-
-    print("Printing schema of orders_df3 after creating date & hour column from order_datetime ")
-    orders_df3.printSchema()
-
-    orders_agg_write_stream_pre = orders_df3 \
+    orders_agg_write_stream_pre = silver_df \
         .writeStream \
         .trigger(processingTime='10 seconds') \
         .outputMode("update") \
@@ -154,7 +133,7 @@ if __name__ == "__main__":
         .format("console") \
         .start()
 
-    orders_agg_write_stream_pre_hdfs = orders_df3.writeStream \
+    orders_agg_write_stream_pre_hdfs = silver_df.writeStream \
         .trigger(processingTime='10 seconds') \
         .format("parquet") \
         .option("path", "/tmp/data/ecom_data/raw") \
@@ -162,18 +141,7 @@ if __name__ == "__main__":
         .partitionBy("partition_date", "partition_hour") \
         .start()
 
-    # Simple aggregate - find total_sales(sum of order_amount) by order_card_type
-    orders_df4 = orders_df3.groupBy("order_card_type") \
-        .agg({'order_amount': 'sum'}) \
-        .select("order_card_type", col("sum(order_amount)")
-                .alias("total_sales"))
-
-    print("Printing Schema of orders_df4: ")
-    orders_df4.printSchema()
-
-    orders_df4 = orders_df4.withColumnRenamed("order_card_type", "card_type")
-
-    orders_df4.printSchema()
+    [orders_df4, orders_df5] = gold_layer_processing(silver_df)
 
     orders_df4 \
         .writeStream \
@@ -181,19 +149,6 @@ if __name__ == "__main__":
         .outputMode("update") \
         .foreachBatch(lambda current_df, epoc_id: save_to_mysql_table(current_df, epoc_id, mysql_salesbycardtype_table_name)) \
         .start()
-
-    # Simple aggregate - find total_sales(sum of order_amount) by order_country_name
-    orders_df5 = orders_df3.groupBy("order_country_name") \
-        .agg({'order_amount': 'sum'}) \
-        .select("order_country_name", col("sum(order_amount)")
-                .alias("total_sales"))
-
-    print("Printing Schema of orders_df5: ")
-    orders_df5.printSchema()
-
-    orders_df5 = orders_df5.withColumnRenamed("order_country_name", "country")
-
-    orders_df5.printSchema()
 
     orders_df5 \
         .writeStream \
