@@ -21,6 +21,7 @@ print(config_read_obj)
 print(config_obj.sections())
 
 # Kafka Cluster/Server Details
+# get the key-value in the config object
 kafka_host_name = config_obj.get('kafka', 'host')
 kafka_port_no = config_obj.get('kafka', 'port_no')
 kafka_topic_name = config_obj.get('kafka', 'input_topic_name')
@@ -55,7 +56,7 @@ if __name__ == "__main__":
 
     message_list = []
     message = None
-    for i in range(100):
+    for i in range(1000):
         i = i + 1
         message = {}
         print("Preparing message: " + str(i))

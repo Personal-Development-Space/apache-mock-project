@@ -91,7 +91,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'ecom_db',
         'USER': 'root',
-        'PASSWORD': 'datamaking',
+        'PASSWORD': '17012003B@oKh@nh_Fedora',
         'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
         'PORT': '3306',
     }

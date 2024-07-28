@@ -14,6 +14,7 @@ class ChartsConsumer(AsyncWebsocketConsumer):
         print("Printing max_batch_no: ")
         print(max_batch_no)
         print(max_batch_no['batch_no'])
+        print("debug checkpoint in get_sales_by_card_type")
         queryset = SalesByCardType.objects.all().filter(batch_no=max_batch_no['batch_no'])
 
         labels = []

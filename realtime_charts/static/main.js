@@ -50,7 +50,7 @@ Chart.defaults.font.size = 15;
 
 console.log('Hello World!');
 
-var socket = new WebSocket('ws://localhost:8000/ws/charts/')
+var socket = new WebSocket('ws://localhost:8000/ws/charts/', "echo-protocol")
 
 socket.onmessage = function(e){
     const djangoData = JSON.parse(e.data);

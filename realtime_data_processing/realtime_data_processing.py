@@ -7,8 +7,8 @@ import time
 from configparser import ConfigParser
 
 # Loading Kafka Cluster/Server details from configuration file(datamaking_app.conf)
-
-conf_file_path = "/home/datamaking/workarea/code/course_download/ecom-real-time-case-study/realtime_data_processing/"
+# Build a config object
+conf_file_path = "/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/"
 conf_file_name = conf_file_path + "datamaking_app.conf"
 config_obj = ConfigParser()
 print(config_obj)
@@ -33,6 +33,7 @@ mysql_password = config_obj.get('mysql', 'password')
 mysql_database_name = config_obj.get('mysql', 'db_name')
 mysql_driver = config_obj.get('mysql', 'driver')
 
+# get tables from `ecom_db`
 mysql_salesbycardtype_table_name = config_obj.get(
     'mysql', 'mysql_salesbycardtype_tbl')
 mysql_salesbycountry_table_name = config_obj.get(
@@ -50,6 +51,7 @@ db_properties = {}
 db_properties['user'] = mysql_user_name
 db_properties['password'] = mysql_password
 db_properties['driver'] = mysql_driver
+# Java Database Connectivity (JDBC) is an application programming interface (API) for the Java programming language which defines how a client may access a database. It is a Java-based data access technology used for Java database connectivity.
 
 
 def save_to_mysql_table(current_df, epoc_id, mysql_table_name):
@@ -73,8 +75,7 @@ def save_to_mysql_table(current_df, epoc_id, mysql_table_name):
 
 
 if __name__ == "__main__":
-    print("Welcome to DataMaking !!!")
-    print("Real-Time Data Processing Application Started ...")
+    print("Real-Time Data Processing Application Started...")
     print(time.strftime("%Y-%m-%d %H:%M:%S"))
 
     spark = SparkSession \
@@ -82,10 +83,17 @@ if __name__ == "__main__":
         .appName("Real-Time Data Processing with Kafka Source and Message Format as JSON") \
         .master("local[*]") \
         .getOrCreate()
+    """
+    spark-submit --master "local[*]" 
+    --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.3.0,mysql:mysql-connector-java:5.1.49 
+    --files /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/datamaking_app.conf 
+            /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/realtime_data_processing.py
+    """
 
     spark.sparkContext.setLogLevel("ERROR")
 
     # Construct a streaming DataFrame that reads from test-topic
+    # What is a bootstrap server: https://stackoverflow.com/questions/61656223/what-is-bootstrap-server-in-kafka-config
     orders_df = spark \
         .readStream \
         .format("kafka") \
@@ -100,7 +108,7 @@ if __name__ == "__main__":
 
     orders_df1 = orders_df.selectExpr("CAST(value AS STRING)", "timestamp")
 
-    # Define a schema for the orders data
+    # Define a schema for the orders data --> usage of schema registry?
     # order_id,order_product_name,order_card_type,order_amount,order_datetime,order_country_name,order_city_name,order_ecommerce_website_name
     orders_schema = StructType() \
         .add("order_id", StringType()) \

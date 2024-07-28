@@ -41,12 +41,14 @@ def salesby_chart(request, salesby):
     sales_data = []
 
     if salesby == 'CardType':
+        print("Getting data for CardType...")
         max_batch_no = SalesByCardType.objects.values('batch_no').order_by('-batch_no').first()
         print("Printing max_batch_no: ")
         print(max_batch_no)
         print(max_batch_no['batch_no'])
+        print(SalesByCardType.total_sales)
         queryset = SalesByCardType.objects.all().filter(batch_no=max_batch_no['batch_no'])
-
+        print("*DEBUG -- checkpoint in CardType")
         for salesByCardType in queryset:
             labels.append(salesByCardType.card_type)
             sales_data.append(salesByCardType.total_sales)

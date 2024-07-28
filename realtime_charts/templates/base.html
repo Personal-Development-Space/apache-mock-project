@@ -121,6 +121,7 @@
 
     function loadChart(chart, endpoint) {
       console.log(chart);
+      console.log("Getting data from ", endpoint)
       $.ajax({
         url: endpoint,
         type: "GET",
@@ -147,13 +148,17 @@
           });
           chart.update();
         },
-        error: () => console.log("Failed to fetch chart data from " + endpoint + "!")
+        error: (e) => {
+          console.log(e)
+          console.log("Failed to fetch chart data from " + endpoint + "!")
+        }
       });
     }
 
     function loadAllCharts(salesby) {
       console.log(salesby);
       console.log(salesByChart);
+      console.log("*debug - Unknown column charts_salesbycardtype.id in field list")
       loadChart(salesByChart, `/chart/sales-by/${salesby}/`);
     }
     </script>
