@@ -156,7 +156,14 @@ Describe kafka topic:
 
 kafka-topics.sh --describe --topic order-events --bootstrap-server localhost:9092
 
+Topic: order-events	TopicId: 8MPqGUIiRTSDqDWmwSRDkw	PartitionCount: 1	ReplicationFactor: 1	Configs: segment.bytes=1073741824
+	Topic: order-events	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
+
+
 kafka-topics.sh --describe --topic output-topic --bootstrap-server localhost:9092
+
+Topic: output-topic	TopicId: fdNKQK84QW64Ih1K1qXacw	PartitionCount: 1	ReplicationFactor: 1	Configs: segment.bytes=1073741824
+	Topic: output-topic	Partition: 0	Leader: 0	Replicas: 0	Isr: 0
 
 
 List the kafka topics:
