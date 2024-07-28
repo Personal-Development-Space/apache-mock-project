@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
+from bronze_layer_processing import bronze_layer_processing
 
 import time
 
@@ -94,16 +95,17 @@ if __name__ == "__main__":
 
     # Construct a streaming DataFrame that reads from test-topic
     # What is a bootstrap server: https://stackoverflow.com/questions/61656223/what-is-bootstrap-server-in-kafka-config
-    orders_df = spark \
-        .readStream \
-        .format("kafka") \
-        .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
-        .option("subscribe", input_kafka_topic_name) \
-        .option("startingOffsets", "latest") \
-        .load()
+    # orders_df = spark \
+    #     .readStream \
+    #     .format("kafka") \
+    #     .option("kafka.bootstrap.servers", kafka_bootstrap_servers) \
+    #     .option("subscribe", input_kafka_topic_name) \
+    #     .option("startingOffsets", "latest") \
+    #     .load()
 
-    print("Printing Schema of orders_df: ")
-    orders_df.printSchema()
+    # print("Printing Schema of orders_df: ")
+    # orders_df.printSchema()
+    orders_df = bronze_layer_processing(spark, kafka_bootstrap_servers, input_kafka_topic_name)
     # key, value, topic, partition, offset, timestamp
 
     orders_df1 = orders_df.selectExpr("CAST(value AS STRING)", "timestamp")
