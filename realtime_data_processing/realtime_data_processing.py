@@ -85,8 +85,9 @@ if __name__ == "__main__":
         .builder \
         .appName("Real-Time Data Processing with Kafka Source and Message Format as JSON") \
         .master("local[*]") \
-        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
         .config("spark.jars.packages", ",io.delta:delta-core_2.12:2.1.0")\
+        .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
         # .getOrCreate()
     
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
@@ -132,6 +133,10 @@ if __name__ == "__main__":
         /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/datamaking_app.conf 
         /home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/realtime_data_processing.py
     """
+    # print("debug: test delta function")
+    # delta_data = spark.range(0, 5)
+    # delta_data.write.format("delta").save("/tmp/delta-table")
+    # print("debug: test delta function - success")
 
     spark.sparkContext.setLogLevel("ERROR")
 
@@ -147,7 +152,7 @@ if __name__ == "__main__":
     # {'order_id': 1, 'order_product_name': 'Laptop', 'order_card_type': 'MasterCard',
     # 'order_amount': 38.48, 'order_datetime': '2020-10-21 10:59:10', 'order_country_name': 'Italy',
     # 'order_city_name': 'Rome', 'order_ecommerce_website_name': 'www.flipkart.com'}
-    silver_df = silver_layer_processing(bronze_df)
+    silver_df = silver_layer_processing(spark, bronze_df)
 
     orders_agg_write_stream_pre = silver_df \
         .writeStream \
@@ -165,7 +170,7 @@ if __name__ == "__main__":
         .partitionBy("partition_date", "partition_hour") \
         .start()
 
-    [orders_df4, orders_df5] = gold_layer_processing(silver_df)
+    [orders_df4, orders_df5] = gold_layer_processing(spark, silver_df)
 
     orders_df4 \
         .writeStream \

@@ -1,7 +1,7 @@
 from pyspark.sql.functions import *
 from pyspark.sql.types import *
 
-def gold_layer_processing(silver_df):
+def gold_layer_processing(spark, silver_df):
     print("-------------------- GOLD LAYER PROCESSING --------------------")
     # Simple aggregate - find total_sales(sum of order_amount) by order_card_type
     orders_df4 = silver_df.groupBy("order_card_type") \
