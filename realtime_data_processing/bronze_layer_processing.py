@@ -1,3 +1,6 @@
+from delta import *
+from delta.tables import *
+
 def bronze_layer_processing(spark, kafka_bootstrap_servers, input_kafka_topic_name):
     print("-------------------- BRONZE LAYER PROCESSING --------------------")
     # failOnDataLoss = false --> turn off the warning
@@ -9,6 +12,16 @@ def bronze_layer_processing(spark, kafka_bootstrap_servers, input_kafka_topic_na
         .option("startingOffsets", "latest") \
         .option("failOnDataLoss", "false") \
         .load()
-    print("Printing Schema of orders_df: ")
+    # raw data is save to delta lake under delta format
+    orders_df.writeStream \
+        .format("delta") \
+        .outputMode("append") \
+        .option("checkpointLocation", "/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/spark-warehouse/orders_bronze") \
+        .toTable("orders_bronze") \
+    # DeltaTable.isDeltaTable(spark, "spark-warehouse/orders_bronze")
+    print("[auxiliary] Printing Schema of orders_df: ")
     orders_df.printSchema()
+    print("[auxiliary] reading delta file... ")
+    aux_df = spark.read.format("delta").load("/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/spark-warehouse/orders_bronze")
+    aux_df.show()
     return orders_df

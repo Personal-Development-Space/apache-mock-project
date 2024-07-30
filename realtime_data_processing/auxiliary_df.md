@@ -1,5 +1,21 @@
 This piece of code isn't working
 ```
+print("Creating table in delta lake if not exists...")
+    # silver_delta_table = DeltaTable.createIfNotExists(spark) \
+    #     .tableName("orders_silver") \
+    #     .addColumn("order_id", StringType()) \
+    #     .addColumn("order_product_name", StringType()) \
+    #     .addColumn("order_card_type", StringType()) \
+    #     .addColumn("order_amount", StringType()) \
+    #     .addColumn("order_datetime", StringType()) \
+    #     .addColumn("order_country_name", StringType()) \
+    #     .addColumn("order_city_name", StringType()) \
+    #     .addColumn("order_ecommerce_website_name", StringType()) \
+    #     .addColumn("source", StringType()) \
+    #     .addColumn("is_flagged", BooleanType()) \
+    #     .addColumn("created_at", DateType()) \
+    #     .addColumn("modified_at", DateType()) \
+    #     .execute()
     # (silver_delta_table.alias('silver') \
     # .merge(
     #     df_updates.alias('updates'),
