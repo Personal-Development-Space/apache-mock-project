@@ -169,7 +169,7 @@ if __name__ == "__main__":
         .option("checkpointLocation", "orders-agg-write-stream-pre-checkpoint") \
         .partitionBy("partition_date", "partition_hour") \
         .start()
-
+    
     [orders_df4, orders_df5] = gold_layer_processing(spark, silver_df)
 
     orders_df4 \
