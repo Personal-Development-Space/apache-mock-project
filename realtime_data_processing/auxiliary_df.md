@@ -1,3 +1,30 @@
+This piece of code isn't working
+```
+    # (silver_delta_table.alias('silver') \
+    # .merge(
+    #     df_updates.alias('updates'),
+    #     'silver.order_id = updates.order_id' #and silver.order_datetime = updates.order_datetime and silver.CustomerName = updates.CustomerName and silver.Item = updates.Item
+    # ) \
+    # .whenMatchedUpdate(set ={}) \
+    # .whenNotMatchedInsert(values =
+    #     {
+    #     "order_id": "updates.order_id",
+    #     "order_product_name": "updates.order_product_name",
+    #     "order_card_type": "updates.order_card_type",
+    #     "order_amount": "updates.order_amount",
+    #     "order_datetime": "updates.order_datetime",
+    #     "order_country_name": "updates.order_country_name",
+    #     "order_city_name": "updates.order_city_name",
+    #     "order_ecommerce_website_name": "updates.order_ecommerce_website_name",
+    #     # "source": "updates.source",
+    #     # "is_flagged": "updates.is_flagged",
+    #     # "created_at": "updates.created_at",
+    #     # "modified_at": "updates.modified_at"
+    #     }
+    # ) \
+    # .execute())
+```
+
 """
 -------------------- BRONZE LAYER PROCESSING --------------------
 Printing Schema of orders_df: 
