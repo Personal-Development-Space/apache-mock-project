@@ -217,3 +217,4 @@ if __name__ == "__main__":
     orders_agg_write_stream.awaitTermination()
 
     print("Real-Time Data Processing Application Completed.")
+

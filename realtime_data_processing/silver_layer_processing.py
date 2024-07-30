@@ -34,36 +34,10 @@ def silver_layer_processing(spark, bronze_df):
         .addColumn("modified_at", DateType()) \
         .execute()
     
-    # deltaTable = DeltaTable.forPath(spark, '/tmp/delta-table/orders_silver')
-    
+    aux_s_dt_tb = DeltaTable.forPath(spark, '/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/spark-warehouse/orders_silver')
     orders_df2 = orders_df1\
         .select(from_json(col("value"), orders_schema)
                 .alias("orders"), "timestamp")
-    
-    # df_updates = orders_df2
-    # silver_delta_table.alias('silver') \
-    # .merge(
-    #     df_updates.alias('updates'),
-    #     'silver.order_id = updates.order_id' #and silver.order_datetime = updates.order_datetime and silver.CustomerName = updates.CustomerName and silver.Item = updates.Item
-    # ) \
-    # .whenMatchedUpdate(set ={}) \
-    # .whenNotMatchedInsert(values =
-    #     {
-    #     "order_id": "updates.order_id",
-    #     "order_product_name": "updates.order_product_name",
-    #     "order_card_type": "updates.order_card_type",
-    #     "order_amount": "updates.order_amount",
-    #     "order_datetime": "updates.order_datetime",
-    #     "order_country_name": "updates.order_country_name",
-    #     "order_city_name": "updates.order_city_name",
-    #     "order_ecommerce_website_name": "updates.order_ecommerce_website_name",
-    #     "source": "updates.source",
-    #     "is_flagged": "updates.is_flagged",
-    #     "created_at": "updates.created_at",
-    #     "modified_at": "updates.modified_at"
-    #     }
-    # ) \
-    # .execute()
     
     print("order_df2 schema: \n")
     orders_df2.printSchema()
@@ -78,6 +52,32 @@ def silver_layer_processing(spark, bronze_df):
     orders_df3 = orders_df3.withColumn("partition_hour", hour(
         to_timestamp("order_datetime", 'yyyy-MM-dd HH:mm:ss')))
 
+    df_updates = orders_df3
+    #? silver_delta_table is a spark session or a delta lake session?
+    #! --> delta table is updated to a dataframe that is under a streaming session?
+    (aux_s_dt_tb.alias('silver') \
+    .merge(
+        df_updates.alias('updates'),
+        'silver.order_id = updates.order_id' #and silver.order_datetime = updates.order_datetime and silver.CustomerName = updates.CustomerName and silver.Item = updates.Item
+    ) \
+    .whenMatchedUpdate(set ={}) \
+    .whenNotMatchedInsert(values =
+        {
+        "order_id": "updates.order_id",
+        "order_product_name": "updates.order_product_name",
+        "order_card_type": "updates.order_card_type",
+        "order_amount": "updates.order_amount",
+        "order_datetime": "updates.order_datetime",
+        "order_country_name": "updates.order_country_name",
+        "order_city_name": "updates.order_city_name",
+        "order_ecommerce_website_name": "updates.order_ecommerce_website_name",
+        # "source": "updates.source",
+        # "is_flagged": "updates.is_flagged",
+        # "created_at": "updates.created_at",
+        # "modified_at": "updates.modified_at"
+        }
+    ) \
+    .execute())
     print("Printing schema of orders_df3 after creating date & hour column from order_datetime: ")
     orders_df3.printSchema()
     return orders_df3
