@@ -40,7 +40,7 @@ def gold_layer_processing(spark, silver_df):
     orders_df4.writeStream \
         .format("delta") \
         .outputMode("append") \
-        .option("checkpointLocation", "/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/spark-warehouse/orders_gold/by_card_type") \
+        .option("checkpointLocation", "hdfs://localhost:9000/nguyenkieubaokhanh/apache-mock-project/orders_gold/by_card_type") \
         .toTable("by_card_type")
     # Simple aggregate - find total_sales(sum of order_amount) by order_country_name
     orders_df5 = silver_df.withColumn('timestamp', unix_timestamp(col('timestamp'), "MM/dd/yyyy hh:mm:ss aa").cast(TimestampType())) \

@@ -30,7 +30,7 @@ def silver_layer_processing(spark, bronze_df):
     print("[auxiliary] Printing schema of orders_df3 before creating date & hour column from order_datetime: ")
     orders_df3.printSchema()
 
-    orders_df3 = orders_df3.withColumn(
+    orders_df3 = orders_df3.withColumn( 
         "partition_date", to_date("order_datetime"))
     orders_df3 = orders_df3.withColumn("partition_hour", hour(
         to_timestamp("order_datetime", 'yyyy-MM-dd HH:mm:ss')))
@@ -44,7 +44,7 @@ def silver_layer_processing(spark, bronze_df):
     orders_df3.writeStream \
         .format("delta") \
         .outputMode("append") \
-        .option("checkpointLocation", "/home/nguyenkieubaokhanh/nguyenkieubaokhanh/CODE/apache-mock-project/realtime_data_processing/spark-warehouse/orders_silver") \
+        .option("checkpointLocation", "hdfs://localhost:9000/nguyenkieubaokhanh/apache-mock-project/orders_silver") \
         .toTable("orders_silver")
     
     return orders_df3
