@@ -75,7 +75,7 @@ def save_to_mysql_table(current_df, epoc_id, mysql_table_name):
                           properties=db_properties)
 
     print("Exit out of save_to_mysql_table function")
-
+# https://stackoverflow.com/questions/69229150/pyspark-delta-lake-metastore
 
 if __name__ == "__main__":
     print("Real-Time Data Processing Application Started...")
@@ -88,6 +88,7 @@ if __name__ == "__main__":
         .config("spark.jars.packages", ",io.delta:delta-core_2.12:2.1.0")\
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog") \
+        .config("spark.sql.warehouse.dir", "hdfs://localhost:9000/nguyenkieubaokhanh/apache-mock-project")
         # .getOrCreate()
     
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
